@@ -1,0 +1,168 @@
+// ConsoleApplication1.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include "iostream"
+#include <fstream>
+#include <string>
+
+#include <cmath>
+#include <vector>
+#include <time.h>
+
+#define unsigned long long 
+
+using namespace std;
+
+// Sieve Atkins Prime Calculations
+void CalculatePrimes(unsigned int n, ofstream & outputFile)
+{
+	// A vector is an array without having to declare a size.
+	vector<bool> is_prime(n + 1);
+	is_prime[2] = true;
+	is_prime[3] = true;
+	for (unsigned int i = 5; i <= n; i++)
+	{
+		is_prime[i] = false;
+	}
+	unsigned int lim = ceil(sqrt(n));
+	for (unsigned int x = 1; x <= lim; x++)
+	{
+		for (unsigned int y = 1; y <= lim; y++)
+		{
+			unsigned int num = (4 * x * x + y * y);
+			if (num <= n && (num % 12 == 1 || num % 12 == 5))
+			{
+				is_prime[num] = true;
+			}
+			num = (3 * x * x + y * y);
+			if (num <= n && (num % 12 == 7))
+			{
+				is_prime[num] = true;
+			}
+
+			if (x > y)
+			{
+				num = (3 * x * x - y * y);
+				if (num <= n && (num % 12 == 11))
+				{
+					is_prime[num] = true;
+				}
+			}
+		}
+	}
+
+	for (unsigned int i = 5; i <= lim; i++)
+	{
+		if (is_prime[i])
+		{
+			for (unsigned int j = i * i; j <= n; j += i)
+			{
+				is_prime[j] = false;
+			}
+		}
+	}
+
+	for (unsigned int i = 2; i <= n; i++)
+	{
+		if (i > 2 && is_prime[i])
+			outputFile << ",";
+		if (is_prime[i])
+		{
+			outputFile << i;
+		}
+
+		
+	}
+}
+
+// Check how many requests
+int CheckRequests(ifstream & inputFile)
+{
+	string line;
+	int numberOfLines = 0;	
+
+	// Tests how many lines of requests are in file.
+	inputFile.open("input.txt");
+	if (inputFile.is_open())
+	{
+		while (!inputFile.eof())
+		{
+			numberOfLines++;
+			getline(inputFile, line);
+
+		}
+		inputFile.close();
+	}
+
+	return numberOfLines;
+}
+
+// Put requests in Dynamic Array.
+vector<unsigned int> GetRequests(ifstream & inputFile, int numberOfRequests)
+{
+	vector<unsigned int> requests(numberOfRequests);
+	string line;
+	int numberOfLines = 0;
+
+	// Opens file and gets lines then converts them to strings.
+	inputFile.open("input.txt");
+	if (inputFile.is_open())
+	{
+		while (!inputFile.eof())
+		{
+			getline(inputFile, line);
+			int calculatePrimes = atoi(line.c_str());
+			requests[numberOfLines] = calculatePrimes;
+			numberOfLines++;
+		}
+		inputFile.close();
+	}
+
+	return requests;
+}
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+	// Starts timer to test how fast algorithm is.
+	time_t start = time(0);
+
+	// Opens output file for prime numbers.	
+	ofstream primeNumberOutput;
+	primeNumberOutput.open("output.txt");
+
+	// Creates instance of input file
+	ifstream inputFile; 
+
+	// Checks how many requests are in file	
+	int numberOfLines = CheckRequests(inputFile);	
+
+	// Puts all requests in a dynamic array
+	vector<unsigned int> requests = GetRequests(inputFile, numberOfLines); 
+	
+	// Gets size of request array
+	numberOfLines = requests.size(); 
+	
+	// Calculates Primes
+	for (int i = 0; i < numberOfLines - 1; ++i)
+	{ 
+		// Skips repeat numbers as long as index isn't 0.
+		if (i > 0 && requests[i] == requests[i - 1] )
+			continue;
+
+		primeNumberOutput << "\n-------------------------------------------\n\ Input :: " << 
+			requests[i] << "\n";
+
+		// Calculates and Outputs prime numbers to text file.
+		CalculatePrimes(requests[i], primeNumberOutput);
+		
+	}
+	
+	double seconds_since_start = difftime(time(0), start);
+	cout << "\n Time for my algorithm: " << seconds_since_start << endl;
+	cout << "Finished";
+	
+	return 0;
+}
+
+
